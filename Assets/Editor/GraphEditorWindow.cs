@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,6 +10,9 @@ namespace NodeEditor.EditorExtension
     {
         private Rect win1;
         private Rect win2;
+        private Texture2D connectionCircleTex;
+
+        private List<NodeGUI> nodeList;
         
         [MenuItem("Tools/Graph Editor")]
         public static void OpenWindow()
@@ -20,34 +24,42 @@ namespace NodeEditor.EditorExtension
 
         private void Initialize()
         {
-            win1 = new Rect(10, 10, 100, 50);
-            win2 = new Rect(50, 10, 100, 50);
+            win1 = new Rect(10, 10, 100, 70);
+            win2 = new Rect(200, 10, 100, 70);
+
+            nodeList = new List<NodeGUI>();
+            nodeList.Add(new NodeGUI(1,win1,"Win1") );
+            nodeList.Add(new NodeGUI(2,win2,"Win2") );
+            nodeList[0].SetConnection(nodeList[1]);
+        }
+
+        private void Awake()
+        {
+            LoadTextures();
+        }
+
+        private void LoadTextures()
+        {
+            connectionCircleTex = EditorGUIUtility.Load("Assets/dot.png") as Texture2D;
+            if (connectionCircleTex != null)
+            {
+                Debug.Log("Load done");
+            }
         }
         //main render loop
         private void OnGUI()
         {
-            DrawNodeCurve(win1, win2);
+            //DrawNodeCurve(win1, win2);
             BeginWindows();
-            win1 = GUI.Window(1, win1, DrawNodeWindow, "Window 1");   // Updates the Rect's when these are dragged
-            win2 = GUI.Window(2, win2, DrawNodeWindow, "Window 2");
+            for (int i = 0; i < nodeList.Count; i++)
+            {
+                nodeList[i].DrawNode();
+            }
+            // var newRect = new Rect(win1.x + win1.width, win1.y+win1.height/2-20/2, 20, 20);
+            // GUI.DrawTexture(newRect,connectionCircleTex);// Updates the Rect's when these are dragged
             EndWindows();
         }
-
-        private void DrawNodeWindow(int id)
-        {
-            GUI.DragWindow();
-        }
-
-        private void DrawNodeCurve(Rect start, Rect end)
-        {
-            Vector3 startPos = new Vector3(start.x + start.width, start.y + start.height / 2, 0);
-            Vector3 endPos = new Vector3(end.x, end.y + end.height / 2, 0);
-            Vector3 startTan = startPos + Vector3.right * 50;
-            Vector3 endTan = endPos + Vector3.left * 50;
-            Color shadowCol = new Color(0, 0, 0, 0.06f);
-            for (int i = 0; i < 3; i++) // Draw a shadow
-                Handles.DrawBezier(startPos, endPos, startTan, endTan, shadowCol, null, (i + 1) * 5);
-            Handles.DrawBezier(startPos, endPos, startTan, endTan, Color.grey, null, 3);
-        }
+        
+        
     }
 }
